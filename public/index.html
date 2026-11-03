@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000015;
+        }
+
+        h2 {
+            color: #1e3a8a;
+        }
+
+        input {
+            padding: 11px;
+            margin: 6px 3px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            width: 180px;
+        }
+
+        button {
+            padding: 11px 18px;
+            margin: 6px 3px;
+            border: none;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1e40af;
+        }
+
+        .delete {
+            background: #dc2626;
+        }
+
+        .delete:hover {
+            background: #991b1b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 13px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #eff6ff;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #15803d;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #1e3a8a;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 Library Management System</h1>
+    <p>Manage Your Books Using Express.js REST API</p>
+</header>
+
+<div class="container">
+
+    <!-- GET ALL BOOKS -->
+    <div class="card">
+        <h2>All Books</h2>
+
+        <button onclick="getBooks()">View All Books</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Book Title</th>
+                    <th>Author</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+
+            <tbody id="bookList">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- GET BOOK BY ID -->
+    <div class="card">
+        <h2>Search Book</h2>
+
+        <input type="number" id="searchId" placeholder="Enter Book ID">
+
+        <button onclick="getBook()">Search Book</button>
+
+        <div id="searchResult"></div>
+    </div>
+
+    <!-- ADD BOOK -->
+    <div class="card">
+        <h2>Add New Book</h2>
+
+        <input type="number" id="addId" placeholder="Book ID">
+        <input type="text" id="addTitle" placeholder="Book Title">
+        <input type="text" id="addAuthor" placeholder="Author">
+        <input type="number" id="addPrice" placeholder="Price">
+
+        <button onclick="addBook()">Add Book</button>
+    </div>
+
+    <!-- UPDATE BOOK -->
+    <div class="card">
+        <h2>Update Book</h2>
+
+        <input type="number" id="updateId" placeholder="Book ID">
+        <input type="text" id="updateTitle" placeholder="New Title">
+        <input type="text" id="updateAuthor" placeholder="New Author">
+        <input type="number" id="updatePrice" placeholder="New Price">
+
+        <button onclick="updateBook()">Update Book</button>
+    </div>
+
+    <!-- DELETE BOOK -->
+    <div class="card">
+        <h2>Delete Book</h2>
+
+        <input type="number" id="deleteId" placeholder="Enter Book ID">
+
+        <button class="delete" onclick="deleteBook()">
+            Delete Book
+        </button>
+    </div>
+
+    <div id="result"></div>
+
+</div>
+
+<footer>
+    <p>Library Management System | Node.js & Express.js</p>
+</footer>
+
+<script>
+
+    const API = "http://localhost:4000/books";
+
+    // 1. GET ALL BOOKS
+    async function getBooks() {
+        try {
+            const res = await fetch(API);
+            const books = await res.json();
+
+            if (!res.ok) {
+                throw new Error(books.message || "Unable to fetch books");
+            }
+
+            let output = "";
+
+            books.forEach(book => {
+                output += `
+                    <tr>
+                        <td>${book.id}</td>
+                        <td>${book.title}</td>
+                        <td>${book.author}</td>
+                        <td>₹${book.price}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("bookList").innerHTML =
+                output || "<tr><td colspan='4'>No books found</td></tr>";
+
+        } catch (error) {
+            showMessage("Error: " + error.message);
+        }
+    }
+
+    // 2. GET BOOK BY ID
+    async function getBook() {
+        const id = document.getElementById("searchId").value;
+
+        if (!id) {
+            alert("Please enter Book ID");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/${id}`);
+            const book = await res.json();
+
+            if (!res.ok) {
+                throw new Error(book.message);
+            }
+
+            document.getElementById("searchResult").innerHTML = `
+                <h3>Book Found</h3>
+                ID: ${book.id}<br>
+                Title: ${book.title}<br>
+                Author: ${book.author}<br>
+                Price: ₹${book.price}
+            `;
+
+        } catch (error) {
+            document.getElementById("searchResult").innerHTML =
+                error.message;
+        }
+    }
+
+    // 3. POST - ADD BOOK
+    async function addBook() {
+        const book = {
+            id: Number(document.getElementById("addId").value),
+            title: document.getElementById("addTitle").value,
+            author: document.getElementById("addAuthor").value,
+            price: Number(document.getElementById("addPrice").value)
+        };
+
+        if (!book.id || !book.title || !book.author ||
+            document.getElementById("addPrice").value === "") {
+            alert("Please fill all fields");
+            return;
+        }
+
+        try {
+            const res = await fetch(API, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(book)
+            });
+
+            const data = await res.json();
+
+            showMessage(data.message);
+
+            if (res.ok) {
+                getBooks();
+            }
+
+        } catch (error) {
+            showMessage("Error: " + error.message);
+        }
+    }
+
+    // 4. PUT - UPDATE BOOK
+    async function updateBook() {
+        const id = document.getElementById("updateId").value;
+
+        if (!id) {
+            alert("Enter Book ID");
+            return;
+        }
+
+        const book = {};
+
+        const title = document.getElementById("updateTitle").value;
+        const author = document.getElementById("updateAuthor").value;
+        const price = document.getElementById("updatePrice").value;
+
+        if (title) book.title = title;
+        if (author) book.author = author;
+        if (price !== "") book.price = Number(price);
+
+        if (Object.keys(book).length === 0) {
+            alert("Enter at least one field to update");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(book)
+            });
+
+            const data = await res.json();
+
+            showMessage(data.message);
+
+            if (res.ok) {
+                getBooks();
+            }
+
+        } catch (error) {
+            showMessage("Error: " + error.message);
+        }
+    }
+
+    // 5. DELETE BOOK
+    async function deleteBook() {
+        const id = document.getElementById("deleteId").value;
+
+        if (!id) {
+            alert("Enter Book ID");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete this book?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API}/${id}`, {
+                method: "DELETE"
+            });
+
+            const data = await res.json();
+
+            showMessage(data.message);
+
+            if (res.ok) {
+                getBooks();
+            }
+
+        } catch (error) {
+            showMessage("Error: " + error.message);
+        }
+    }
+
+    // DISPLAY MESSAGE
+    function showMessage(message) {
+        document.getElementById("result").innerText = message;
+    }
+
+    // LOAD BOOKS WHEN PAGE OPENS
+    getBooks();
+
+</script>
+
+</body>
+</html>
+
